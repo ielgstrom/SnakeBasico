@@ -6,22 +6,23 @@ namespace SnakeBasico
     {
         static void Main(string[] args)
         {
-            int dimension = 21;
+            int dimension = 13;
             int posicionX0 = dimension / 2;
             int posicionY0 = dimension / 2;
             string[,] tablero = tablaInicial(dimension);
+            int[,] posicionesSerpiente = snakeIncial(dimension);
             bool continueGame = true;
-            while(continueGame)
+            string direccionSnake = "Up";
+            while (continueGame)
             {
+                colocarElementoRandom(tablero, dimension);
                 PrintTabla(tablero);
-                Tuple<string[,], int, int, int> nuevaTabla = movimiento(tablero, posicionX0, posicionY0, dimension);
+                Tuple<string[,], int, int, int, string> nuevaTabla = movimiento(tablero, posicionX0, posicionY0, dimension, direccionSnake);
                 posicionX0 = nuevaTabla.Item2;
                 posicionY0 = nuevaTabla.Item3;
+                direccionSnake = nuevaTabla.Item5;
                 //Console.Clear();
-                if (puedeHacerAlgoMas(posicionX0, posicionY0, tablero, dimension))
-                {
-                System.Threading.Thread.Sleep(1000);
-                }
+                if (puedeHacerAlgoMas(posicionX0, posicionY0, tablero, dimension)) continue;
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.White;
@@ -29,6 +30,18 @@ namespace SnakeBasico
                 }
             }
             Console.WriteLine("Has acabado el juego\nPulsa Cualquier tecla para salir");
+
+
+            //REFERENCIA DE COMO HACER UN TIMEOUT DE GETKEY------------------------------------
+            //DateTime beginWait = DateTime.Now;
+            //while (!Console.KeyAvailable && DateTime.Now.Subtract(beginWait).TotalSeconds < 10)
+            //    System.Threading.Thread.Sleep(2500);
+
+            //if (!Console.KeyAvailable)
+            //    Console.WriteLine("You didn't press anything!");
+            //else
+            //    Console.WriteLine("You pressed: {0}", Console.ReadKey().KeyChar);
+            //----------------------------------------------------------------------------------
 
 
 
@@ -43,8 +56,8 @@ namespace SnakeBasico
             {
                 for (int j = 1; j < tablaMomentanea.GetLength(0) - 1; j++)
                 {
-                    if (tablaMomentanea[i, j] == " X")
-                        Console.ForegroundColor = ConsoleColor.Green;
+                    if (tablaMomentanea[i, j] == " X") Console.ForegroundColor = ConsoleColor.Green;
+                    else if(tablaMomentanea[i, j] == " A") Console.ForegroundColor = ConsoleColor.Red;
                     else Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(tablaMomentanea[i, j]);
                 }
@@ -52,91 +65,106 @@ namespace SnakeBasico
             }
         }
 
-
-        public static Tuple<string[,], int, int, int> movimiento(string[,] tablaPrecedente, int newX, int newY, int dimension)
+        public static Tuple<string[,], int, int, int, string> movimiento(string[,] tablaprecedente, int newX, int newY, int dimension, string direccionSnake)
         {
-            System.Threading.Thread.Sleep(1000);
-            while (Console.KeyAvailable)
+
+            DateTime beginWait = DateTime.Now;
+            while (!Console.KeyAvailable && DateTime.Now.Subtract(beginWait).TotalSeconds < 0.5)
+                System.Threading.Thread.Sleep(250);
+
+            if (!Console.KeyAvailable)
             {
-
-            }
-            //var read = Console.ReadKey();
-            var read = "D";
-            if(read == null)
-            {
-                
-                tablaPrecedente[newX, newY - 1] = " X";
-                return new Tuple<string[,], int, int, int>(tablaPrecedente, newX, newY, dimension);
-
-            }
-            switch (read)
-            {
-                case ConsoleKey.LeftArrow:
-                    if (isInsideBox(newX, newY - 1, dimension) && tablaPrecedente[newX, newY - 1] == " o")
-                    {
-                        tablaPrecedente[newX, newY - 1] = " X";
-                        newY--;
-
-
-                    }
-                    else
-                    {
-                        Console.WriteLine("No puedes ir ahí. Ves a otra posicion");
-                        movimiento(tablaPrecedente, newX, newY, dimension);
-
-
-                    }
-                    break;
-
-                case ConsoleKey.RightArrow:
-                    if (isInsideBox(newX, newY + 1, dimension) && tablaPrecedente[newX, newY + 1] == " o")
-                    {
-                        tablaPrecedente[newX, newY + 1] = " X";
-                        newY++;
-
-                    }
-                    else
-                    {
-                        Console.WriteLine("No puedes ir ahí. Ves a otra posicion");
-                        movimiento(tablaPrecedente, newX, newY, dimension);
-
-                    }
-                    break;
-
-                case ConsoleKey.UpArrow:
-                    if (isInsideBox(newX - 1, newY, dimension) && tablaPrecedente[newX - 1, newY] == " o")
-                    {
-                        tablaPrecedente[newX - 1, newY] = " X";
+                switch (direccionSnake)
+                {
+                    case "Up":
+                        tablaprecedente[newX - 1, newY] = " X";
                         newX--;
-                    }
-                    else
-                    {
-                        Console.WriteLine("No puedes ir ahí. Ves a otra posicion");
-                        movimiento(tablaPrecedente, newX, newY, dimension);
-                    }
-
-                    break;
-
-                case ConsoleKey.DownArrow:
-                    if (isInsideBox(newX + 1, newY, dimension) && tablaPrecedente[newX + 1, newY] == " o")
-                    {
-                        tablaPrecedente[newX + 1, newY] = " X";
+                        break;
+                    case "Down":
+                        tablaprecedente[newX + 1, newY] = " X";
                         newX++;
-                    }
-                    else
-                    {
-                        Console.WriteLine("No puedes ir ahí. Ves a otra posicion");
-                        movimiento(tablaPrecedente, newX, newY, dimension);
-                    }
-                    break;
-
-                default:
-                    Console.WriteLine("\nComando no Valido. Utiliza solo las felchas");
-                    movimiento(tablaPrecedente, newX, newY, dimension);
-                    break;
+                        break;
+                    case "Left":
+                        tablaprecedente[newX, newY - 1] = " X";
+                        newY--;
+                        break;
+                    case "Right":
+                        tablaprecedente[newX, newY + 1] = " X";
+                        newY++;
+                        break;
+                }
+                Console.Clear();
+                return new Tuple<string[,], int, int, int, string>(tablaprecedente, newX, newY, dimension, direccionSnake);
             }
-            Console.Clear();
-            return new Tuple<string[,], int, int, int>(tablaPrecedente, newX, newY, dimension);
+            else
+            {
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.LeftArrow:
+                        if (isInsideBox(newX, newY - 1, dimension) && tablaprecedente[newX, newY - 1] == " o")
+                        {
+                            tablaprecedente[newX, newY - 1] = " X";
+                            newY--;
+                            direccionSnake = "Left";
+                        }
+                        else
+                        {
+                            Console.WriteLine("no puedes ir ahí. ves a otra posicion");
+                            movimiento(tablaprecedente, newX, newY, dimension, direccionSnake);
+                        }
+                        break;
+
+                    case ConsoleKey.RightArrow:
+                        if (isInsideBox(newX, newY + 1, dimension) && tablaprecedente[newX, newY + 1] == " o")
+                        {
+                            tablaprecedente[newX, newY + 1] = " X";
+                            newY++;
+                            direccionSnake = "Right";
+                        }
+                        else
+                        {
+                            Console.WriteLine("no puedes ir ahí. ves a otra posicion");
+                            movimiento(tablaprecedente, newX, newY, dimension, direccionSnake);
+                        }
+                        break;
+
+                    case ConsoleKey.UpArrow:
+                        if (isInsideBox(newX - 1, newY, dimension) && tablaprecedente[newX - 1, newY] == " o")
+                        {
+                            tablaprecedente[newX - 1, newY] = " X";
+                            newX--;
+                            direccionSnake = "Up";
+                        }
+                        else
+                        {
+                            Console.WriteLine("no puedes ir ahí. ves a otra posicion");
+                            movimiento(tablaprecedente, newX, newY, dimension, direccionSnake);
+                        }
+
+                        break;
+
+                    case ConsoleKey.DownArrow:
+                        if (isInsideBox(newX + 1, newY, dimension) && tablaprecedente[newX + 1, newY] == " o")
+                        {
+                            tablaprecedente[newX + 1, newY] = " X";
+                            newX++;
+                            direccionSnake = "Down";
+                        }
+                        else
+                        {
+                            Console.WriteLine("no puedes ir ahí. ves a otra posicion");
+                            movimiento(tablaprecedente, newX, newY, dimension, direccionSnake);
+                        }
+                        break;
+
+                    default:
+                        Console.WriteLine("\ncomando no valido. utiliza solo las felchas");
+                        movimiento(tablaprecedente, newX, newY, dimension, direccionSnake);
+                        break;
+                }
+                Console.Clear();
+                return new Tuple<string[,], int, int, int, string>(tablaprecedente, newX, newY, dimension, direccionSnake);
+            }
         }
 
         public static string[,] tablaInicial(int dimension)
@@ -152,6 +180,11 @@ namespace SnakeBasico
             tabla0[dimension / 2, dimension / 2] = " X";
             return tabla0;
 
+        }
+        public static int[,] snakeIncial(int dimension)
+        {
+            int[,] arraySnake = new int[,] { { dimension / 2, dimension / 2 }, { dimension / 2, (dimension / 2) - 1 }, { dimension / 2, (dimension / 2) - 2 } };
+            return arraySnake;
         }
 
         public static bool isInsideBox(int x, int y, int dimension)
@@ -176,6 +209,29 @@ namespace SnakeBasico
                 return false;
             }
             else return true;
+        }
+
+        public static string[,] colocarElementoRandom(string[,] tablaMomentanea, int dimension)
+        {
+            for (var i =1; i < dimension - 1; i++)
+            {
+                for (var j = 1; j < dimension - 1; j++)
+                {
+                    if (tablaMomentanea[i, j] == " A") return tablaMomentanea;
+                }
+            }
+            Random rd = new Random();
+            Random rd2 = new Random();
+            int rand1 = rd.Next(1, dimension - 1);
+            int rand2 = rd2.Next(1, dimension - 1);
+            if (tablaMomentanea[rand1, rand2] == " o")
+            {
+                tablaMomentanea[rand1, rand2] = " A";
+                return tablaMomentanea;
+            }
+            else colocarElementoRandom(tablaMomentanea, dimension);
+            return tablaMomentanea;
+
         }
     }
 }
